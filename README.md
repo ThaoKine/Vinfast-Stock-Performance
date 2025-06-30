@@ -26,7 +26,7 @@ This project focuses on:
 
 - **VinFast Auto Ltd. stock data** from **August 14, 2023 (IPO)** to **June 27, 2025**.  
 - Data File (downloaded from Investing.com:  
-  `vinfast_stock_price.csv` *(original columns: Date, Open, High, Low, Close, Adj Close, Volume, Change)*
+  [VinFast Stock Price History.csv](https://github.com/ThaoKine/Vinfast-Stock-Performance/blob/main/VinFast%20Stock%20Price%20History.csv) *(original columns: Date, Open, High, Low, Close, Adj Close, Volume, Change)*
 
 - Analysis segmented by:
   - **Date ranges** (daily, weekly, monthly summaries)
@@ -42,8 +42,7 @@ This project focuses on:
 ## 🧰 Tools & Methodology
 
 ### 🛠 SQL Server (Data Cleaning & Analysis) 
-
-
+The code is right after this section.
 ### 📊 Power BI (Visualization)
 
 **In Power BI**, I:
