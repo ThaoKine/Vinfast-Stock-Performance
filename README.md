@@ -24,7 +24,7 @@ Many investors struggle with knowing **when to buy or sell**, understanding **ho
 
 This project focuses on:
 
-- **VinFast Auto Ltd. stock data** from **August 15, 2023 (IPO)** to **June 28, 2025**.  
+- **VinFast Auto Ltd. stock data** from **August 14, 2023 (IPO)** to **June 27, 2025**.  
 - Data File (downloaded from Investing.com:  
   `vinfast_stock_price.csv` *(original columns: Date, Open, High, Low, Close, Adj Close, Volume, Change)*
 
@@ -41,11 +41,8 @@ This project focuses on:
   
 ## 🧰 Tools & Methodology
 
-### 🛠 SQL Server (Data Cleaning)
+### 🛠 SQL Server (Data Cleaning & Analysis) 
 
-**In SQL Server**, I:
-- Converted volume (text, like `"681.45K"`) and change (text, like `"−1.23%"`) to decimal numbers
-- Added new columns like numeric volume and percent change for analysis
 
 ### 📊 Power BI (Visualization)
 
@@ -68,7 +65,7 @@ the table is already pretty much cleaned but the **Vol** and **Change** is store
 ##### => Convert Vol and Change to numeric values.
 
 Here are the steps:
-##### 1. Add new numeric columns
+#### 1. Add new numeric columns
 > Explain: If you change directly on the original column, casting them in-place will either fail or give incorrect results. it's better to create new numeric columns (Vol_num, Change_num), convert values there safely, and then drop the original ones and rename the new columns later.
 >
 
@@ -78,7 +75,7 @@ ALTER TABLE dbo.[VinFast Stock Price History]
     ADD Vol_num DECIMAL(18, 2),
         Change_num DECIMAL(10, 4);
 ```
-##### 2. Convert Volume (e.g., 543.81K or 1.2M) to numeric
+#### 2. Convert Volume (e.g., 543.81K or 1.2M) to numeric
 
 ```sql
 Update dbo.[VinFast Stock Price History]
@@ -89,21 +86,21 @@ set Vol_num =
         else TRY_CAST (Vol as Decimal(18, 2))
     End;
 ```
-##### 3. Store the original Vol, Change as Backup
+#### 3. Store the original Vol, Change as Backup
 ```sql
     SELECT Date, Vol, Change
     INTO Vol_Change_Backup
     FROM dbo.[VinFast Stock Price History];
 ```
 
-##### 4. Convert Change (e.g., 0.00% ) to numeric
+#### 4. Convert Change (e.g., 0.00% ) to numeric
 
 ```sql
 Update dbo.[VinFast Stock Price History]
 set Change_num = try_cast(replace(Change, '%', '') as DECIMAL(10,4))/100
 WHERE Change like '%[0-9]%[%]'
 ```
-##### 5. Drop the old columns and rename the new ones:
+#### 5. Drop the old columns and rename the new ones:
 
 ```sql
     alter table dbo.[VinFast Stock Price History]
@@ -111,6 +108,125 @@ WHERE Change like '%[0-9]%[%]'
 
     EXEC sp_rename 'dbo.[VinFast Stock Price History].Vol_num', 'Vol', 'COLUMN';
     EXEC sp_rename 'dbo.[VinFast Stock Price History].Change_num', 'Change', 'COLUMN';
+```
+## 👮‍♀️ Data Analysis (SQL Code)
+
+#### 1. Calculate the Volatility (High - Low)**
+```sql
+Alter table dbo.[VinFast Stock Price History]
+alter column High decimal (10,4); -- the original data type for High is float so I wanna change it.
+
+Alter table dbo.[VinFast Stock Price History]
+alter column Low decimal (10,4); -- the original data type for High is float so I wanna change it.
+
+Alter table dbo.[VinFast Stock Price History]
+add Volatility decimal (10,4); 
+
+Update dbo.[VinFast Stock Price History]
+    set Volatility = 
+        case 
+            when High is not null and Low is not null
+            then High - Low
+            else Null
+        end;
+```
+#### 2. Calculate the Rolling 7-day Volatility (Standard Deviation)
+Explanation: this is to measure how crazy the stock price has moving up and down the past 7 days.
+- 📈 High rolling volatility = Price is moving a lot — risky or unstable
+- 📉 Low rolling volatility = Price is steady — more stable
+- Formula: 7-Day Volatility = STDEV(Daily Return from today and previous 6 days)
+
+```sql
+EXEC sp_rename 'dbo.[VinFast Stock Price History].Daily Return', 'Daily_Return', 'COLUMN'; -- I feel like the Change in the orginal column is calculated like Daily_Return, so I rename it.
+alter table dbo.[VinFast Stock Price History]
+add Rolling_volatility_7D Decimal (10,6); -- column names can’t start with a number unless you put them in square brackets.
+
+UPDATE V
+SET Rolling_Volatility_7D = R.RollingStdDev
+FROM dbo.[VinFast Stock Price History] AS V
+CROSS APPLY ( -- CROSS APPLY is used to apply a subquery for each row in the table.
+    SELECT 
+        CASE 
+            WHEN COUNT(*) = 7 THEN STDEV(W.Daily_Return) -- the condition to restrict the calculation to only 7 existing trading days 
+            ELSE NULL -- if not, it should be NULL to prevent using INCOMPLETE data
+        END AS RollingStdDev
+    FROM (
+        SELECT TOP 7 W.Daily_Return -- Get the 7 most recent trading days (including current row's date).
+        FROM dbo.[VinFast Stock Price History] AS W
+        WHERE W.[Date] <= V.[Date]
+        ORDER BY W.[Date] DESC
+    ) AS W
+) AS R;
+```
+#### 3. Daily % Change (Close vs Open)
+Explanation: This helps retail investors to know which days are bulish and bearish.
+```sql
+EXEC sp_rename 'dbo.[VinFast Stock Price History].Price', 'Close', 'COLUMN'; -- 'Price' can be confusing sometimes to me (like what price is it referred to?), so I change it to Close. 
+
+alter table dbo.[VinFast Stock Price History]
+add Change_OpenClose Decimal (10, 4);
+
+Update dbo.[VinFast Stock Price History]
+    set Change_OpenClose = 
+        case 
+            when [Open] is not null and [Close] is not null
+            then cast(([Close]-[Open])/[Open] as Decimal (10, 4)) 
+            -- CAST(... AS DECIMAL(10,4)) ensures the result fits Change_OpenClose's data type.
+            else Null
+        end;
+```
+#### 4. Drawdown from Peak
+Explanation: Drawdown = 'How much the stock has fallen from its highest price so far?'
+It helps retail investors answer three key questions:
+- 1. “How bad was the worst dip?”
+- 2. “How long did it take to recover?”
+- 3. “When should I have sold to avoid losses?”
+
+```sql
+alter table dbo.[VinFast Stock Price History]
+add Peak_Drawdown Decimal (10,4);
+
+UPDATE V
+SET Peak_Drawdown = 
+    TRY_CAST ((V.[Close] - P.Peak)*1.0/P.Peak as Decimal (10,4))
+FROM dbo.[VinFast Stock Price History] AS V
+CROSS APPLY ( -- CROSS APPLY is used to apply a subquery for each row in the table.
+    SELECT 
+        Max(W.[Close]) as Peak
+        FROM dbo.[VinFast Stock Price History] AS W
+        WHERE W.[Date] <= V.[Date]
+) AS P;
+```
+#### 5. Next day return
+This helps retail investors know what happened after a spike/drop (if there was a spike/drop) and if we know how the stock behaved after such events, we can predict when to buy and when to sell that can earn a big profit for us.
+
+``` sql
+alter table dbo.[VinFast Stock Price History]
+add Next_Day_Return Decimal (10,4);
+
+Update V
+    set Next_Day_Return = try_cast((Next.[Close]-V.[Close])*1.0/V.[Close] as Decimal (10, 4)) 
+    from dbo.[VinFast Stock Price History] as V
+    join dbo.[VinFast Stock Price History] as Next
+        on Next.[Date] = DATEADD(Day, 1, V.[Date]); -- This worked but didn't return the correct result since stock is not traded on weekends/holidays. and DATEADD syntax only add calendar days.
+
+    -- => we'll use LEAD() window function since it only cares about the next row's value instead of the date.
+    -- I'll use a CTE for this:
+
+    With whatever as (
+    Select 
+    [Date],
+    [Close],
+    LEAD ([Close]) OVER (order by [Date]) as Next_Close -- Remember: LEAD () OVER. NOT LEAD (.. OVER). 
+    from dbo.[VinFast Stock Price History]
+    )
+    Update V -- do not up Update CTE in SQL Server since it's not allowed. So Update the original table and JOIN the original table with CTE.
+    set Next_Day_Return = TRY_CAST ((Next_Close - V.[Close])*1.0/V.[Close] as Decimal(10,4))
+    from dbo.[VinFast Stock Price History] as V
+    Join whatever
+    on V.[Date] = whatever.[Date]
+    ;
+    -- There was a NULL in 2025-06-27, which is the last row in your table => NULL for Next_Day_Return for this row. Moreover, LEAD() can’t find “tomorrow” (2025-06-28) because there’s no data for the next day.
 ```
 
 ## 🔍 What Makes This Different from Yahoo Finance?
