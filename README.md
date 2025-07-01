@@ -227,6 +227,43 @@ Update V
     ;
     -- There was a NULL in 2025-06-27, which is the last row in your table => NULL for Next_Day_Return for this row. Moreover, LEAD() can’t find “tomorrow” (2025-06-28) because there’s no data for the next day.
 ```
+#### 6. Buy-the-Dip Strategy
+Explanation: Usually, retail investors buy stocks when their prices dropped a lot. But: 
+1. Will the price go up again? And when? In other words, how do we know that it will go up? 
+2. How many times that it actually goes up? (Since we want to spot a pattern here, not just some random chance)
+   
+So in this section, we will determine the drop thredshold that is actually associated with rebound the next day. So to me, I choose rebound level at least **2%**.
+And then, I'll calculate the frequency of the rebound, i.e, "How often a stock rebounded 2%+ the next day after dropping around X% today?"
+Based on the frequency of the rebound, we can also calculate the Success_rate = (Frequency of rebound/Total Cases)
+
+Step 1: Find the drop thresholds
+```sql
+WITH Drops_CTE AS (
+    SELECT 
+        FLOOR(Change_OpenClose*100.0) AS Drop_Threshold_Percent,
+        Next_Day_Return
+    FROM dbo.[VinFast Stock Price History]
+    WHERE Change_OpenClose < 0
+)
+
+SELECT 
+    Drop_Threshold_Percent,
+    COUNT(*) AS Total_Cases,
+    SUM(CASE WHEN Next_Day_Return >= 0.02 THEN 1 ELSE 0 END) AS Rebound_Frequency,
+    ROUND(
+        100.0 * 
+        SUM(CASE WHEN Next_Day_Return >= 0.02 THEN 1 ELSE 0 END) * 1.0 / 
+        COUNT(*),
+        2
+    ) AS Win_Rate
+FROM Drops_CTE
+GROUP BY Drop_Threshold_Percent
+ORDER BY Drop_Threshold_Percent;
+```
+And this is illustration of this:
+![image](https://github.com/user-attachments/assets/dbf2f807-f82a-49a3-893f-ce5f4266cfe4)
+
+
 
 ## 🔍 What Makes This Different from Yahoo Finance?
 
