@@ -261,10 +261,164 @@ GROUP BY Drop_Threshold_Percent
 ORDER BY Drop_Threshold_Percent;
 ```
 And this is illustration of this:
-![image](https://github.com/user-attachments/assets/dbf2f807-f82a-49a3-893f-ce5f4266cfe4)
+![image](https://github.com/user-attachments/assets/b45bd31f-f011-402e-b6e6-9d049df6e92f)
 
+Looking at the table, we see that if the stock price drops anywhere below 7%, the Win Rate seems to be **unreliable** since the the total cases are too small (fewer or equal to 7).
 
+So, I'll choose drop threshold which have at least 10 cases with Win rates at least 25%:
+| Drop %   | Total Cases | Win Rate (%)  |
+| -------- | ----------- | ----------    |
+| **-2%**  | 49          | 26.53% ✅    | 
+| **-3%**  | 38          | 31.58% ✅    |
+| **-5%**  | 23          | 26.09% ✅    |
+| **-6%**  | 12          | 33.33% ✅    |
 
+Now that we have the Drop Thresholds for different risk tates, then we'll proceed to create BUY SIGNALS.
+Buy Signal = 1 => "Yes, we should Buy"
+Buy Signal = 0 => "No"
+
+```sql
+Create table dbo.BuyDipStrategy (
+Date DATE,
+Drop_Threshold_Percent INT,
+Buy_Signal BIT, -- Should we buy? (if the price drops and the return next day is +2%): 1 = Yes, 0 = No
+Rebound_Next_day BIT -- Does it rebound next day? 1 = Yes, 0 = No
+-- The logic behind this is to test the Buy Dip Strategy. For example, if you actually buy stocks at the recommended drop thresholds, but it doesn't rebound the next day.
+-- Then, the BuyDipStrategy just simply doesn't work.
+);
+
+Select *
+from dbo.BuyDipStrategy;
+
+Insert into dbo.BuyDipStrategy ([Date],Drop_Threshold_Percent, Buy_Signal, Rebound_Next_day)
+Select 
+    V.[Date],
+    -2 as Drop_Threshold_Percent,
+    Case when V.Change_OpenClose*100 <=-2 then 1 else 0 end as Buy_Signal,
+    Case 
+        when V.Change_OpenClose*100 <=-2 and V.Next_Day_Return*100 >=2 then 1
+        when V.Change_OpenClose*100 <=-2 and V.Next_Day_Return*100 <2 then 0
+        when V.Change_OpenClose*100 <=-2 and V.Next_Day_Return*100 is null then null
+        else null
+        end as Rebound_Next_day
+from dbo.[VinFast Stock Price History] as V
+
+Union all
+
+Select 
+    V.[Date],
+    -3 as Drop_Threshold_Percent,
+    Case when V.Change_OpenClose*100 <=-3 then 1 else 0 end as Buy_Signal,
+    Case 
+        when V.Change_OpenClose*100 <=-3 and V.Next_Day_Return*100 >=2 then 1
+        when V.Change_OpenClose*100 <=-3 and V.Next_Day_Return*100 <2 then 0
+        when V.Change_OpenClose*100 <=-3 and V.Next_Day_Return*100 is null then null
+        else null
+        end as Rebound_Next_day
+from dbo.[VinFast Stock Price History] as V
+
+union all
+
+Select 
+    V.[Date],
+    -5 as Drop_Threshold_Percent,
+    Case when V.Change_OpenClose*100 <=-5 then 1 else 0 end as Buy_Signal,
+    Case 
+        when V.Change_OpenClose*100 <=-5 and V.Next_Day_Return*100 >=2 then 1
+        when V.Change_OpenClose*100 <=-5 and V.Next_Day_Return*100 <2 then 0
+        when V.Change_OpenClose*100 <=-5 and V.Next_Day_Return*100 is null then null
+        else null
+        end as Rebound_Next_day
+from dbo.[VinFast Stock Price History] as V
+
+union all
+
+Select 
+    V.[Date],
+    -6 as Drop_Threshold_Percent,
+    Case when V.Change_OpenClose*100 <=-6 then 1 else 0 end as Buy_Signal,
+    Case 
+        when V.Change_OpenClose*100 <=-6 and V.Next_Day_Return*100 >=2 then 1
+        when V.Change_OpenClose*100 <=-6 and V.Next_Day_Return*100 <2 then 0
+        when V.Change_OpenClose*100 <=-6 and V.Next_Day_Return*100 is null then null
+        else null
+        end as Rebound_Next_day
+from dbo.[VinFast Stock Price History] as V
+;
+
+Alter table dbo.BuyDipStrategy
+add [Close] Float,
+Next_Day_Return decimal (10,4);
+
+update BDS
+set BDS.[Close] = VS.[Close],
+    BDS.Next_Day_Return = VS.Next_Day_Return
+from dbo.[BuyDipStrategy] as BDS
+Join dbo.[VinFast Stock Price History] as VS
+        on BDS.[Date] = VS.[Date];
+```
+Next, I want to test whether retail investors actually win or not if they buy at dip. Winning here means we buy when the stock price drops, and next day, the price goes up at least 2%.
+``` sql
+Alter table dbo.BuyDipStrategy
+add Win_or_not INT; -- If you buy at dip and gain +2%, then 1 = yes, you win. Or else, 0 = No.
+
+update BuyDipStrategy
+set Win_or_not =
+    case 
+    when Buy_Signal = 1 and Rebound_Next_day = 1 then 1
+    WHEN Buy_Signal = 1 AND Rebound_Next_day = 0 THEN 0
+    else Null
+    end
+    from BuyDipStrategy;
+```
+Finally, I want to check the Success Rate of this Buy_Dip_Strategy.
+``` sql
+SELECT
+    Drop_Threshold_Percent,
+    SUM(CASE WHEN Buy_Signal = 1 THEN 1 ELSE 0 END) AS Total_Buying_Opportunities, 
+    SUM(CASE WHEN Buy_Signal = 1 AND Rebound_Next_day = 1 THEN 1 ELSE 0 END) AS Total_Rebounds,
+    ROUND(100.0 * SUM(CASE WHEN Buy_Signal = 1 AND Rebound_Next_day = 1 THEN 1 ELSE 0 END)
+      / NULLIF(SUM(CASE WHEN Buy_Signal = 1 THEN 1 ELSE 0 END), 0),2) AS Success_Rate
+    -- Success_Rate = 'Of all the days when the stock dropped enough to trigger a buy, how many times did the price actually go up by at least 2% the next day?'
+FROM dbo.BuyDipStrategy
+GROUP BY Drop_Threshold_Percent
+ORDER BY Drop_Threshold_Percent;
+```
+#### Behavior by Weekday
+I'll create a summary table that includes average daily return, buillish days, and bearish days in Power BI. So first, I need a table for that.  
+
+``` sql
+SELECT 
+    [Date],
+    DATENAME(WEEKDAY, [Date]) AS Weekday_Name,
+    Change_OpenClose,
+    CASE 
+    WHEN Change_OpenClose > 0 THEN 'Bullish' 
+    WHEN Change_OpenClose < 0 THEN 'Bearish' 
+    else 'Neutral'
+    end as Trading_Day_Type
+    INTO dbo.Stock_Behavior_Weekday
+FROM dbo.[VinFast Stock Price History];
+```
+#### Monthly KPI
+
+This will help retail investors have a view of the stock's monthly performance.
+
+``` sql
+SELECT 
+    DATEFROMPARTS(YEAR([Date]), MONTH([Date]), 1) AS [Date],  -- Primary Date column (1st of month). This column is the primary key so that by the time I will have made slicers, they will connect all tables.
+    FORMAT([Date], 'yyyy-MM') AS Month_Year,                  -- Display-friendly text
+    ROUND(AVG([Close]), 2) AS Avg_Close,
+    ROUND(MIN([Close]), 2) AS Min_Close,
+    ROUND(MAX([Close]), 2) AS Max_Close,
+    ROUND(AVG(Vol), 0) AS Avg_Volume,
+    COUNT(*) AS Trading_Days,
+    SUM(CASE WHEN Change_OpenClose > 0 THEN 1 ELSE 0 END) AS Gain_Days,
+    SUM(CASE WHEN Change_OpenClose < 0 THEN 1 ELSE 0 END) AS Loss_Days
+INTO dbo.MonthlyKPI
+FROM dbo.[VinFast Stock Price History]
+GROUP BY DATEFROMPARTS(YEAR([Date]), MONTH([Date]), 1), FORMAT([Date], 'yyyy-MM');
+```
 ## 🔍 What Makes This Different from Yahoo Finance?
 
 Unlike stock sites that only show prices and charts, this dashboard adds insights like:
