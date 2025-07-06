@@ -9,17 +9,6 @@ This project helps retail investors understand patterns, risks, and simple tradi
 Many investors struggle with knowing **when to buy or sell**, understanding **how risky** a stock is, or seeing how a stock **behaves after big events**. This data project helps answer those questions using real data.
 
 ---
-
-## 💼 Business Questions This Dashboard Answers
-
-- When is the best time to buy or sell VinFast stock?
-- How does VinFast usually behave after a big drop?
-- Are certain weekdays or months more bullish or bearish?
-- What happens after high trading volume days?
-- How risky is the stock right now compared to before?
-- What if I had followed a simple buy-sell strategy — would it work?
-
----
 ## 🎯 Scope:
 
 This project focuses on:
