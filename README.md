@@ -426,7 +426,8 @@ FROM dbo.[VinFast Stock Price History]
 GROUP BY DATEFROMPARTS(YEAR([Date]), MONTH([Date]), 1), FORMAT([Date], 'yyyy-MM');
 ```
 ## 📊 Dashboard:
-![image](https://github.com/user-attachments/assets/e34ab763-df6f-4c70-a0b5-eeced9255d86)
+![image](https://github.com/user-attachments/assets/2a3890e5-c4bd-43e7-ac31-bd1660dbe92b)
+
 
 
 ## 🔍 Insight
@@ -503,7 +504,7 @@ Visuals Used to answer this question:
 - Rolling 7-Day Volatility:
 ![image](https://github.com/user-attachments/assets/a15cbd13-11e5-4d3c-a1fc-a4dc7c19b9d2)
 
-- Buy-Dip Win Rate Card: 27.06%
+- Buy-Dip Win Rate Card: 23.08%
 --
 ## 🔻 Max Drawdown: -97.06%
 
