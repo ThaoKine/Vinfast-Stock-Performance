@@ -62,7 +62,7 @@ Update dbo.[VinFast Stock Price History]
 
 -- 2. Calculate 7-day rolling volatility
 alter table dbo.[VinFast Stock Price History]
-add Rolling_volatility_7D Decimal (10,6); -- column names can’t start with a number unless you put them in square brackets.
+add Rolling_volatility_7D Decimal (10,6); -- column names canâ€™t start with a number unless you put them in square brackets.
 
 UPDATE V
 SET Rolling_Volatility_7D = R.RollingStdDev
@@ -143,7 +143,7 @@ Update V
     Join whatever
     on V.[Date] = whatever.[Date]
     ;
-    -- Because 2025-06-27 is the last row in your table => NULL for Next_Day_Return for this row — and LEAD() can’t find “tomorrow” (2025-06-28) because there’s no data for the next day.
+    -- Because 2025-06-27 is the last row in your table => NULL for Next_Day_Return for this row â€” and LEAD() canâ€™t find â€œtomorrowâ€ (2025-06-28) because thereâ€™s no data for the next day.
 
     USE [Vinfast Historical Stock Data];
     Go
