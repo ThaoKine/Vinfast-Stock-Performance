@@ -42,18 +42,23 @@ This project focuses on:
 ## 🧰 Tools & Methodology
 
 ### 🛠 SQL Server (Data Cleaning & Analysis) 
-The code is right after this section.
+The code and explanation of the code is right after this section.
 ### 📊 Power BI (Visualization)
 
 **In Power BI**, I:
-- Created charts for price trends, volume, and volatility
+- Created KPIs at the top including:
+  1. % change since IPO
+  2. Max drawdown
+  3. Buy dip win rate
+  4. Average of Volume
+  5. Best Drop Threshold
+  6. Minimum and maximum of close price since IPO
+- Created charts for:
+  1. Volatility & Risks
+  2. Return Insights
+  3. Buy-at-Dip Strategy Analysis
 - Added slicers and filters for better interaction
-- Built summaries like:
-  - Monthly price behavior
-  - Bullish vs. bearish day counts
-  - Drawdown and recovery charts
-  - Simple strategy backtesting (e.g., buy on big dip, sell on small rise)
-
+(Image for Dashboard is below Data Cleaning)
 ---
 ## 🧼 Data Cleaning (SQL Code)
 ##### 0. Check the structure (columns, data types, nullability)
@@ -261,6 +266,7 @@ GROUP BY Drop_Threshold_Percent
 ORDER BY Drop_Threshold_Percent;
 ```
 And this is illustration of this:
+
 ![image](https://github.com/user-attachments/assets/b45bd31f-f011-402e-b6e6-9d049df6e92f)
 
 Looking at the table, we see that if the stock price drops anywhere below 7%, the Win Rate seems to be **unreliable** since the the total cases are too small (fewer or equal to 7).
@@ -419,27 +425,62 @@ INTO dbo.MonthlyKPI
 FROM dbo.[VinFast Stock Price History]
 GROUP BY DATEFROMPARTS(YEAR([Date]), MONTH([Date]), 1), FORMAT([Date], 'yyyy-MM');
 ```
-## 🔍 What Makes This Different from Yahoo Finance?
+## 📊 Dashboard:
+![image](https://github.com/user-attachments/assets/e34ab763-df6f-4c70-a0b5-eeced9255d86)
 
-Unlike stock sites that only show prices and charts, this dashboard adds insights like:
-- Stock behavior by **day of week** or **month**
-- **Rolling volatility** and recovery time after a drop
-- Reactions to **news or events**
-- What would happen if you followed a simple trading rule
-- Summarized trends and strategy outcomes over time
 
----
+## 🔍 Insight
+**Investor's Concern: “I don’t know when to enter or exit.”**
 
-## 📁 Folder Structure
-VinFast-Stock-Dashboard/
-│
-├── sql/
-│ └── vinfast_cleaning.sql # SQL script to clean raw data
-├── pbix/
-│ └── vinfast_dashboard.pbix # Power BI dashboard file
-├── data/
-│ └── vinfast_raw.csv # Original CSV file (optional)
-├── screenshots/
-│ └── preview.png # Dashboard preview image
-└── README.md # You're here!
+**Data Analyst Question: What are the optimal entry price to buy and at what price to sell?**
+
+Preferable: Buy low, sell high.
+
+Visuals Used to answer this question:
+- Bubble chart: Next Day Return vs Daily % Change
+
+![real one](https://github.com/user-attachments/assets/47929f5d-c34d-40ca-a582-c0ebf8ca37e2)
+
+
+- Buy-Dip Strategy Table: Success Rate by Drop Level
+
+![image](https://github.com/user-attachments/assets/7773f159-742b-437e-9e54-ca95f4beecc4)
+
+  
+- Max and Min Close Price:
+
+![image](https://github.com/user-attachments/assets/73dcdb9a-1c01-4329-8f85-c7b3c4a72d4c)
+
+#### ✅ Entry Strategy (When to Buy)
+Rebound is defined as a **≥2% gain the following day**.
+
+**📌 Key Entry Signal:**
+- Buy after a **drop between –3% and –5%**
+- These drops show a **success rate of ~26–31%** for short-term rebounds
+
+**HOWEVER**, also confirm with: 
+
+- **Spike in trading volume**
+  - If price drops with _high volume_ => more people are trading than usual. They are actively reacting to this drop => the price-drop movement can be actually valid.
+  - If price drops with _low volume_ => the drop doesn't mean much
+
+- **News or external catalyst**
+  - Check with earnings or press releases
+  
+#### ✅ Exit Strategy (When to Sell)
+Most successful rebounds landed in the **+2% to +11% next-day return** zone
+
+**📌 Key Entry Signal:**
+- Sell when the stock gains **+2% to +5% the next day**
+- Use a **stop-loss of –3% to –5%** to limit downside if trade goes against your plan
+
+#### ⚠️ Limitations of this:
+- Strategy does not account for macro news or earnings reports
+- Past performance ≠ future guarantee
+- **Low success rate (~25%)** suggests this strategy is high-risk without confirmation signals
+
+**Investor's Concern: “I don’t know when to enter or exit.”**
+
+**Data Analyst Question: What are the optimal entry price to buy and at what price to sell?**
+
 
