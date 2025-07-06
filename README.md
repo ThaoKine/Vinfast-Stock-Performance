@@ -430,6 +430,14 @@ GROUP BY DATEFROMPARTS(YEAR([Date]), MONTH([Date]), 1), FORMAT([Date], 'yyyy-MM'
 
 
 ## 🔍 Insight
+
+Summary:
+
+- VinFast is a highly volatile at first but remained quite weak.
+  - It spiked early due to excitement but quickly crashed and hasn’t bounced back.
+- Some short-term patterns exist, for example, Tuesdays often show strong gains, especially after losses on Mondays, but long-term investors still face big risks.
+
+
 ## 1. Investor's Concern: “I don’t know when to enter or exit.”
 
 →  What are the optimal entry price to buy and at what price to sell?**
@@ -589,5 +597,3 @@ Visuals Used to answer this question:
 | **📊 Weekday Return**     | Tuesdays often surge, especially after red Mondays, which is a potential short-term pattern.                        |
 | **📅 Monthly KPIs**       | Since late 2023, most months have **more down days** than up, which showing consistent bearish force, in order words, selling pressure.         |
 | **📈 Rolling Volatility** | Volatility was extreme after IPO, but **cooled off** despite occasional spikes |
-
-- 
