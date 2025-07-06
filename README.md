@@ -430,9 +430,9 @@ GROUP BY DATEFROMPARTS(YEAR([Date]), MONTH([Date]), 1), FORMAT([Date], 'yyyy-MM'
 
 
 ## 🔍 Insight
-**Investor's Concern: “I don’t know when to enter or exit.”**
+## 1. Investor's Concern: “I don’t know when to enter or exit.”
 
-**Data Analyst Question: What are the optimal entry price to buy and at what price to sell?**
+→  What are the optimal entry price to buy and at what price to sell?**
 
 Preferable: Buy low, sell high.
 
@@ -479,8 +479,115 @@ Most successful rebounds landed in the **+2% to +11% next-day return** zone
 - Past performance ≠ future guarantee
 - **Low success rate (~25%)** suggests this strategy is high-risk without confirmation signals
 
-**Investor's Concern: “I don’t know when to enter or exit.”**
+---
+## 2. Investor's Concern: “I need a clearer view of risk.”
 
-**Data Analyst Question: What are the optimal entry price to buy and at what price to sell?**
+→ What’s the volatility, drawdown, and risk-adjusted return profile?**
+
+Visuals Used to answer this question:
+- Mark Drawdown Card: -97.06%
+- Drawdown from Peak Chart:
+![image](https://github.com/user-attachments/assets/b950b4fd-afcf-4899-b4f1-3a9f4acdfeb4)
+
+- Daily Volatility:
+![image](https://github.com/user-attachments/assets/f47e20b7-a1c2-4b56-a00b-8dda49fdb693)
+
+- Rolling 7-Day Volatility:
+![image](https://github.com/user-attachments/assets/a15cbd13-11e5-4d3c-a1fc-a4dc7c19b9d2)
+
+- Buy-Dip Win Rate Card: 27.06%
+--
+## 🔻 Max Drawdown: -97.06%
+
+- VinFast has lost **97% of its value** since its highest price.
+- If you invested $100 at the top, you'd have less than $3 now.
+- It hasn’t bounced back.
+
+## ⚡ Volatility
+
+- Beginning: the price moved up and down **a lot** — up to $30 in a day.
+- Now: it barely moves, which could be not much trading or interest anymore.
+- Volatility is lower, but the stock still feels unstable at times.
 
 
+## ❌ Buy-the-Dip Win Rate: 27.06%
+
+- Only 1 in 4 dip-buying attempts have been profitable.
+- That means most people who bought after a drop just lost more.
+
+## 🚫 Conclusion
+
+> Vinfast stock has lost most of its value, rarely recovers after drops.
+> **Too risky** for most investors — especially beginners or those looking for steady returns.
+
+---
+## 3. “I want to know how the stock reacts to events.”
+- → How does the stock behave around or key dates?
+
+Visuals Used for this: Daily Change (Open vs Close) Bar Chart
+
+Here're are 3 key dates I picked: 
+
+### 1. 🟢 August 15, 2023 – IPO & First Day Trading
+- Why it matters: First exposure to U.S. public markets 
+
+![image](https://github.com/user-attachments/assets/8d80747f-647b-4f6e-8096-2b12ffd767e1)
+
+#### 🧠 Key Interpretation:
+
+| Phase          | What Happened      | What It Means                                        |
+| -------------- | ------------------ | ---------------------------------------------------- |
+| **Aug 15 - 22**     | IPO Day → +68% and Series of +20% and +90% Gains    | Strong hype and demand                               |
+| **Aug 28–Sep** | -20% to -30% drops | The hype didn’t last. The stock quickly reversed, entering a sharp decline. |
+
+> This shows that the stock was being traded mostly on hype and news, not on strong business performance.
+>
+
+### 2. 🔴 March 2024 – North Carolina Plant Delayed to 2028
+- Why it matters: Raised serious concerns about execution and credibility. Direct hit to growth plans in a key market.
+
+![image](https://github.com/user-attachments/assets/1b43795a-63ba-42da-8d51-f220d050525c)
+
+#### 🧠 Key Interpretation:
+
+| Phase          | What Happened      | What It Means                                        |
+| -------------- | ------------------ | ---------------------------------------------------- |
+| **Mar 2024**     | Factory delay to 2028 announced    | Negative reaction — confidence dropped, price declined steadily                              |
+
+### 3. 🔵 July 12, 2024 – Q2 Delivery Results + Plant Update
+- Why it matters: VinFast released delivery numbers and updated investors on the delayed U.S. factory timeline. After the delayed-plant news, delivery figures affect revenue outlook.
+
+![image](https://github.com/user-attachments/assets/c40af38d-0f0d-4ba7-a274-103b1270417b)
+
+| Phase          | What Happened      | What It Means                                        |
+| -------------- | ------------------ | ---------------------------------------------------- |
+| **July 12, 2024**     | 📉 No big move   | The market did not react strongly to the delivery numbers or update, suggesting investors were neither interested nor surprised                              |
+
+---
+## 4. “I can’t track patterns over time.”
+
+→ What recurring trends or behaviors can I monitor?
+
+Visuals Used to answer this question:
+- Weekday Return Bar Chart
+
+![image](https://github.com/user-attachments/assets/7ce822a1-6c91-43b4-b6fd-fcb69ead90f5)
+
+- Monthly KPIs
+
+![image](https://github.com/user-attachments/assets/e2db0717-0ea0-4d49-b6ce-05c688badc65)
+
+- Rolling Volatility & Drawdown Charts
+
+![image](https://github.com/user-attachments/assets/892bd23d-c28e-4435-b112-9cde318fc3e2)
+
+![image](https://github.com/user-attachments/assets/af09fc7f-c1ed-4833-a59c-9d3655a92170)
+
+| Visuals                 | **What It Shows**                                                                                           |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| **📉 Drawdown Chart**     | Stock dropped **over 97%** from its peak and **never recovered**, could be long-term weakness.                      |
+| **📊 Weekday Return**     | Tuesdays often surge, especially after red Mondays, which is a potential short-term pattern.                        |
+| **📅 Monthly KPIs**       | Since late 2023, most months have **more down days** than up, which showing consistent bearish force, in order words, selling pressure.         |
+| **📈 Rolling Volatility** | Volatility was extreme after IPO, but **cooled off** despite occasional spikes |
+
+- 
